@@ -1,10 +1,12 @@
 package com.bignerdranch.android.kidsdrawapp
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -16,6 +18,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
@@ -86,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         buttonAdd.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
-            startActivityForResult(intent, 1)
+            resultForActivity.launch(intent)
         }
 
         buttonSave.setOnClickListener {
@@ -124,15 +127,12 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private val resultForActivity = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, result.data?.data)
 
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
-            val uri = data.data
-            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-
-            viewModel.setBackGround(bitmap)
-        }
+        viewModel.setBackGround(bitmap)
     }
 
     fun saveTheImageLegacyStyle(bitmap: Bitmap, fileName: String){
